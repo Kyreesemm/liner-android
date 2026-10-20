@@ -109,7 +109,7 @@ function DailyMixCard({ mix }: DailyMixCardProps) {
 
   return (
     <div
-      className="group flex-shrink-0 w-[175px] cursor-pointer select-none"
+      className="group flex-shrink-0 w-[min(42vw,175px)] sm:w-[175px] cursor-pointer select-none"
       onClick={handleClick}
       onContextMenu={handleContextMenu}
       onMouseEnter={() => setIsCardHovered(true)}
@@ -169,7 +169,7 @@ function DailyMixesSection({ mixes, headingMarginTop = "mt-[22px]" }: DailyMixes
 
   return (
     <div className="flex flex-col">
-      <div className={`${headingMarginTop} px-8 flex items-center justify-between`}>
+      <div className={`${headingMarginTop} px-4 sm:px-8 flex items-center justify-between`}>
         <div className="flex items-center gap-2.5">
           <div className="flex items-center shrink-0">
             <SparklesFill className="w-5 h-5 text-amber-400" />
@@ -183,7 +183,7 @@ function DailyMixesSection({ mixes, headingMarginTop = "mt-[22px]" }: DailyMixes
         </div>
       </div>
 
-      <ScrollableRow className="flex gap-[28px] pl-8 pr-8 mt-[12px] overflow-x-auto pb-[2px]">
+      <ScrollableRow className="flex gap-4 sm:gap-[28px] pl-4 pr-4 sm:pl-8 sm:pr-8 mt-[12px] overflow-x-auto pb-[2px]">
         {mixes.map((mix, index) => (
           <DailyMixCard key={`daily-mix-${mix.id}-${index}`} mix={mix} />
         ))}

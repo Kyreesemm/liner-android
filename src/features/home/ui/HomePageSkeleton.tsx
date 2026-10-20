@@ -21,7 +21,7 @@ function SectionSkeleton({
   return (
     <div className="flex flex-col select-none">
       {/* Section Header */}
-      <div className={`${headingMarginTop} px-8 flex items-center justify-between`}>
+      <div className={`${headingMarginTop} px-4 sm:px-8 flex items-center justify-between`}>
         <div className="flex items-center gap-2.5">
           <div className="skeleton-shimmer w-5 h-5 rounded-[4px] shrink-0" />
           <div className={`skeleton-shimmer h-[22px] ${titleWidth} rounded-[5px]`} />
@@ -29,7 +29,7 @@ function SectionSkeleton({
       </div>
 
       {/* Cards Row */}
-      <div className="flex gap-[28px] pl-8 pr-8 mt-[12px] overflow-hidden pb-[2px]">
+      <div className="flex gap-4 sm:gap-[28px] pl-4 pr-4 sm:pl-8 sm:pr-8 mt-[12px] overflow-hidden pb-[2px]">
         {Array.from({ length: cardsCount }).map((_, i) => (
           <div key={i} className="flex-shrink-0 w-[175px]">
             {/* Thumbnail */}
@@ -72,14 +72,14 @@ function HomePageSkeletonComponent({
       {/* Speed Dial Section Skeleton */}
       {showQuickGrid && (
         <div className="flex flex-col select-none">
-          <div className="mt-[20px] px-8 flex items-center justify-between">
+          <div className="mt-[20px] px-4 sm:px-8 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="skeleton-shimmer w-5 h-5 rounded-[4px] shrink-0" />
               <div className="skeleton-shimmer h-[22px] w-[120px] rounded-[5px]" />
             </div>
           </div>
 
-          <div className="px-8 mt-[12px] relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          <div className="px-4 sm:px-8 mt-[12px] relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {/* Liked Songs Quick Card */}
             <div className={`flex h-[56px] items-center gap-3 overflow-hidden rounded-[6px] ${hasCustomBg ? "apple-glass-action" : "bg-bg-elevated"} pr-4 select-none`}>
               <div className="skeleton-shimmer h-[56px] w-[56px] shrink-0" />

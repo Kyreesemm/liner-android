@@ -53,6 +53,7 @@ AGENTS.md
 GEMINI.md
 .agents/
 .agent/
+no-public/
 
 brag-output/
 scratch/

@@ -120,7 +120,7 @@ function TrackCard({
 
   return (
     <div
-      className="group flex-shrink-0 w-[175px] cursor-pointer select-none"
+      className="group flex-shrink-0 w-[min(42vw,175px)] sm:w-[175px] cursor-pointer select-none"
       onClick={handleClick}
       onContextMenu={handleContextMenu}
     >
@@ -233,7 +233,7 @@ function AlbumCard({
 
   return (
     <div
-      className="group flex-shrink-0 w-[175px] cursor-pointer select-none"
+      className="group flex-shrink-0 w-[min(42vw,175px)] sm:w-[175px] cursor-pointer select-none"
       onClick={handleClick}
       onContextMenu={handleContextMenu}
     >
@@ -331,7 +331,7 @@ function PlaylistCard({
 
   return (
     <div
-      className="group flex-shrink-0 w-[175px] cursor-pointer select-none"
+      className="group flex-shrink-0 w-[min(42vw,175px)] sm:w-[175px] cursor-pointer select-none"
       onClick={handleClick}
       onContextMenu={handleContextMenu}
     >
@@ -417,7 +417,7 @@ function ArtistCard({ item }: { item: PopularItem & { type: "artist" } }) {
 
   return (
     <div
-      className="group flex-shrink-0 w-[175px] cursor-pointer select-none"
+      className="group flex-shrink-0 w-[min(42vw,175px)] sm:w-[175px] cursor-pointer select-none"
       onClick={handleClick}
       onContextMenu={handleContextMenu}
     >
@@ -496,7 +496,7 @@ function PopularTracksSection({
 }: PopularTracksSectionProps) {
   return (
     <div className="flex flex-col">
-      <div className={`${headingMarginTop} px-8 flex items-center justify-between`}>
+      <div className={`${headingMarginTop} px-4 sm:px-8 flex items-center justify-between`}>
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-2.5">
             {icon && <div className="flex items-center shrink-0">{icon}</div>}
@@ -517,7 +517,7 @@ function PopularTracksSection({
       </div>
 
       <ScrollableRow
-        className={`flex gap-[28px] pl-8 pr-8 mt-[12px] overflow-x-auto pb-[2px] ${rowClassName}`}
+        className={`flex gap-4 sm:gap-[28px] pl-4 pr-4 sm:pl-8 sm:pr-8 mt-[12px] overflow-x-auto pb-[2px] ${rowClassName}`}
       >
         {items.map((item, index) => (
           <PopularItemCard

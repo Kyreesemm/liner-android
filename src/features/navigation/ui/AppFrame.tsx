@@ -853,16 +853,16 @@ export default function AppFrame({ children }: AppFrameProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -12, scale: 0.99 }}
             transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-            className={`absolute right-0 z-[60] flex flex-col items-center pointer-events-none pt-[56px]`}
+            className={`absolute right-0 z-[60] flex flex-col items-center pointer-events-none ${isMobile ? "pt-[12px]" : "pt-[56px]"}`}
             style={{
-              left: SIDEBAR_WIDTH + SHELL_EDGE_GAP,
-              right: SHELL_EDGE_GAP,
-              top: 12,
+              left: isMobile ? 12 : SIDEBAR_WIDTH + SHELL_EDGE_GAP,
+              right: isMobile ? 12 : SHELL_EDGE_GAP,
+              top: isMobile ? "env(safe-area-inset-top)" : 12,
             }}
           >
             {/* 1. Search Input Island */}
             <div
-              className="w-[min(660px,calc(100vw-72px))] h-[54px] rounded-[8px] pointer-events-auto flex items-center px-[18px] gap-[14px] bg-bg-panel/95 border border-border-primary/50 backdrop-blur-2xl"
+              className={`${isMobile ? "w-full h-[50px] rounded-xl px-4" : "w-[min(660px,calc(100vw-72px))] h-[54px] rounded-[8px] px-[18px]"} pointer-events-auto flex items-center gap-[14px] bg-bg-panel/95 border border-border-primary/50 backdrop-blur-2xl`}
             >
               <span className="shrink-0 flex items-center justify-center text-text-tertiary">
                 <AnimatePresence mode="wait" initial={false}>
@@ -943,7 +943,7 @@ export default function AppFrame({ children }: AppFrameProps) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.99 }}
                   transition={{ duration: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                  className="w-[min(660px,calc(100vw-72px))] mt-[8px] max-h-[500px] h-[500px] rounded-[8px] pointer-events-auto flex flex-col overflow-hidden bg-bg-panel/95 border border-border-primary/50 backdrop-blur-2xl"
+                  className={`${isMobile ? "w-full mt-2 max-h-[min(58dvh,520px)] h-[min(58dvh,520px)] rounded-xl" : "w-[min(660px,calc(100vw-72px))] mt-[8px] max-h-[500px] h-[500px] rounded-[8px]"} pointer-events-auto flex flex-col overflow-hidden bg-bg-panel/95 border border-border-primary/50 backdrop-blur-2xl`}
                 >
                   <div className="flex gap-[6px] px-[14px] pt-[12px] pb-[6px] shrink-0 overflow-x-auto">
                     {filterKeys.map((key) => {
@@ -1056,7 +1056,7 @@ export default function AppFrame({ children }: AppFrameProps) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.99 }}
                   transition={{ duration: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                  className="w-[min(660px,calc(100vw-72px))] mt-[8px] max-h-[480px] h-auto rounded-[8px] pointer-events-auto flex flex-col overflow-hidden bg-bg-panel/95 border border-border-primary/50 backdrop-blur-2xl"
+                  className={`${isMobile ? "w-full mt-2 max-h-[min(42dvh,360px)] h-auto rounded-xl" : "w-[min(660px,calc(100vw-72px))] mt-[8px] max-h-[480px] h-auto rounded-[8px]"} pointer-events-auto flex flex-col overflow-hidden bg-bg-panel/95 border border-border-primary/50 backdrop-blur-2xl`}
                 >
                   <SearchHistoryList
                     onSelectQuery={handleSelectHistoryQuery}

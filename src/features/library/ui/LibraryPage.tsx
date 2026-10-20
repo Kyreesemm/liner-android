@@ -361,7 +361,7 @@ export default function LibraryPage() {
       >
         <div className="sticky top-0 z-20 bg-transparent">
 
-          <div className="px-[32px] pt-[20px] pb-[10px]">
+          <div className="px-4 sm:px-8 pt-[16px] sm:pt-[20px] pb-[10px]">
             <h1
               className="text-[26px] font-bold text-text-primary tracking-tight m-0 leading-tight"
               style={{ fontFamily: "var(--font-inter), sans-serif" }}
@@ -370,7 +370,7 @@ export default function LibraryPage() {
             </h1>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-[10px] px-[32px] pb-[10px]">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-between gap-[10px] px-4 sm:px-8 pb-[10px]">
             <LibraryTabs activeTab={activeTab} onChange={setActiveTab} />
             <LibraryControls
               activeTab={activeTab}
@@ -389,7 +389,7 @@ export default function LibraryPage() {
         </div>
 
 
-        <div className="px-[32px] pt-[4px] pb-[20px]">
+        <div className="px-4 sm:px-8 pt-[4px] pb-[20px]">
           {activeTab === "playlists" && playlistsError ? (
             <div className="mb-[10px] text-[12px] text-accent-secondary">
               {t("playlist.error_loading")}

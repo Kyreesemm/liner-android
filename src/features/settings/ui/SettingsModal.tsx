@@ -13,6 +13,7 @@ import {
   Widget5,
 } from "@solar-icons/react";
 import Dialog from "@/shared/ui/Dialog";
+import { Capacitor } from "@capacitor/core";
 import { UserAvatar } from "@/shared/ui";
 import { useTranslation, getTranslationsForAllLocales } from "@/languages";
 import { useModalStore } from "@/features/library";
@@ -109,6 +110,7 @@ const SETTING_ITEMS: { tabId: TabId; titleKey: string; descKey?: string }[] = [
 const font = { fontFamily: "var(--font-inter), sans-serif" } as const;
 
 export default function SettingsModal() {
+  const isMobile = Capacitor.isNativePlatform();
   const { t } = useTranslation();
   const open = useModalStore((state) => state.settingsOpen);
   const close = useModalStore((state) => state.closeSettings);
@@ -234,10 +236,10 @@ export default function SettingsModal() {
     <Dialog
       open={open}
       onOpenChange={(next) => (!next ? handleClose() : undefined)}
-      maxWidth={880}
-      className="p-0 h-[620px] max-h-[86vh] !flex-row overflow-hidden !bg-bg-elevated !border-0"
+      maxWidth={isMobile ? "100vw" : 880}
+      className={`p-0 h-[620px] ${isMobile ? "!h-[100dvh] !max-h-[100dvh] !m-0 !rounded-none" : "max-h-[86vh]"} !flex-row overflow-hidden !bg-bg-elevated !border-0`}
     >
-      <aside className="w-[248px] shrink-0 flex flex-col min-h-0 bg-transparent">
+      <aside className={`${isMobile ? "hidden" : "w-[248px]"} shrink-0 flex flex-col min-h-0 bg-transparent`}>
         <div className="px-[12px] pt-[14px] pb-[8px]">
           <div className="relative flex items-center">
             <Search2Line
@@ -378,7 +380,11 @@ export default function SettingsModal() {
       {/* ── Right secondary frame: same roundness, inset with padding, darker ── */}
       <div className="flex-1 min-w-0 min-h-0 p-[2px] flex">
         <div className="flex-1 min-w-0 min-h-0 flex flex-col rounded-xl bg-bg-primary overflow-hidden">
-        <div className="flex items-start justify-between gap-[16px] px-[24px] pt-[20px] pb-[10px] shrink-0">
+        <div className="flex flex-col items-stretch gap-[12px] px-[16px] pt-[max(16px,env(safe-area-inset-top))] pb-[10px] shrink-0">
+          {isMobile && <div className="flex items-center justify-between"><h2 className="text-text-primary text-[20px] m-0 font-semibold" style={font}>{t("settings.title")}</h2><button type="button" aria-label={t("common.close") || "Close"} onClick={handleClose} className="w-10 h-10 inline-flex items-center justify-center rounded-lg text-text-secondary bg-transparent border-0"><CloseLine size={21} /></button></div>}
+          {isMobile && <div className="relative"><Search2Line size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none"/><input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={t("settings.search_placeholder")} className="w-full h-11 pl-10 pr-4 bg-border-alpha-14 text-text-primary text-[14px] rounded-xl border-0 outline-none placeholder:text-text-tertiary" style={font}/></div>}
+          {isMobile && <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label={t("settings.title")}>{TAB_GROUPS.flatMap(group => group.ids).map(id => {const Icon=TAB_ICONS[id]; const selected=id===activeTab; return <button key={id} type="button" role="tab" aria-selected={selected} onClick={()=>setActiveTab(id)} className={`flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-[12px] border-0 ${selected ? "bg-text-primary text-bg-primary" : "bg-border-alpha-14 text-text-secondary"}`}><Icon size={15}/>{tabLabels[id]}</button>})}</div>}
+          <div className={`${isMobile ? "hidden" : "flex items-start justify-between gap-[16px]"}`}>
           <div className="min-w-0">
             <h3
               className="text-text-primary text-[15px] m-0 font-[600] tracking-[-0.01em]"
@@ -401,9 +407,10 @@ export default function SettingsModal() {
           >
             <CloseLine size={17} />
           </button>
+          </div>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto px-[24px] pb-[16px] flex flex-col">
+        <div className="flex-1 min-h-0 overflow-y-auto px-[16px] pb-[max(16px,env(safe-area-inset-bottom))] flex flex-col">
           <motion.div
             key={activeTab}
             initial={{ opacity: 0, y: 7 }}

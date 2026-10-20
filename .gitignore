@@ -49,7 +49,6 @@ renderer.log
 signer/
 
 # agent rules
-AGENTS.md
 GEMINI.md
 .agents/
 .agent/

@@ -55,6 +55,7 @@ import {
 } from "@/features/library";
 import { SettingsModal, useCustomizationStore, getBlockStyle } from "@/features/settings";
 import { UpdateModal, UpdateToastBridge } from "@/features/updater";
+import { Capacitor } from "@capacitor/core";
 
 
 interface AppFrameProps {
@@ -78,6 +79,7 @@ export default function AppFrame({ children }: AppFrameProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { isEdgeToEdge } = useWindowState();
+  const isMobile = Capacitor.isNativePlatform();
 
   const searchOpen = useModalStore((state) => state.searchOpen);
   const openSearch = useModalStore((state) => state.openSearch);
@@ -86,6 +88,7 @@ export default function AppFrame({ children }: AppFrameProps) {
   const openSettings = useModalStore((state) => state.openSettings);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [queuePopupOpen, setQueuePopupOpen] = useState(false);
   const [rightDrawerTab, setRightDrawerTabState] = useState<"queue" | "lyrics">(() => {
     if (typeof window === "undefined") return "queue";
@@ -188,7 +191,6 @@ export default function AppFrame({ children }: AppFrameProps) {
   const miniPlayerContainerRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const searchScrollRef = useRef<HTMLDivElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   type SearchFilterKey = "all" | "tracks" | "artists" | "albums" | "playlists";
   const filterKeys: SearchFilterKey[] = [
@@ -550,8 +552,16 @@ export default function AppFrame({ children }: AppFrameProps) {
   }, [searchOpen, queuePopupOpen, handleQueuePopupToggle]);
 
   const handleSearchToggle = useCallback(() => {
+    if (isMobile) {
+      if (searchOpen) closeSearch();
+      else {
+        openSearch();
+        window.setTimeout(() => searchInputRef.current?.focus(), 100);
+      }
+      return;
+    }
     toggleSearch();
-  }, [toggleSearch]);
+  }, [isMobile, searchOpen, closeSearch, openSearch, toggleSearch]);
 
   const handlePlayFromSearch = useCallback(
     (track: any) => {
@@ -685,7 +695,7 @@ export default function AppFrame({ children }: AppFrameProps) {
     <div
       ref={appFrameRef}
       data-custom-bg={hasCustomBg ? "true" : undefined}
-      className={`relative flex flex-row h-full w-full overflow-hidden ${
+      className={`relative ${isMobile ? "flex flex-col" : "flex flex-row"} h-full w-full overflow-hidden ${
         isEdgeToEdge ? "rounded-none p-0" : "rounded-5xl p-1.5"
       } bg-bg-canvas gap-1.5`}
       onScroll={(e) => {
@@ -718,7 +728,7 @@ export default function AppFrame({ children }: AppFrameProps) {
         </div>
       )}
 
-      <aside
+      {!isMobile && <aside
         ref={sidebarRef}
         className="w-[58px] h-full shrink-0 z-[45] relative"
       >
@@ -727,9 +737,9 @@ export default function AppFrame({ children }: AppFrameProps) {
           onSearchToggle={handleSearchToggle}
           isEdgeToEdge={isEdgeToEdge}
         />
-      </aside>
+      </aside>}
 
-      <div className="flex-1 flex flex-col min-w-0 h-full relative gap-1.5 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 h-full relative gap-1.5 overflow-hidden">
         <main
           data-custom-bg={hasCustomBg ? "true" : undefined}
           className={`flex-1 min-w-0 flex flex-col relative h-full ${
@@ -1066,6 +1076,15 @@ export default function AppFrame({ children }: AppFrameProps) {
       )}
     </AnimatePresence>
 
+      {isMobile && (
+        <nav aria-label="Main navigation" className="z-[60] flex h-[58px] shrink-0 items-center justify-around border-t border-border-primary bg-bg-primary/95 px-2 pb-[env(safe-area-inset-bottom)]">
+          <button type="button" onClick={() => { closeSearch(); navigate("/"); }} className="flex flex-col items-center gap-1 border-0 bg-transparent text-text-primary"><GridFill size={21} /><span className="text-[10px]">Home</span></button>
+          <button type="button" onClick={handleSearchToggle} className="flex flex-col items-center gap-1 border-0 bg-transparent text-text-primary"><Search3Line size={21} /><span className="text-[10px]">Search</span></button>
+          <button type="button" onClick={() => { closeSearch(); navigate("/library"); }} className="flex flex-col items-center gap-1 border-0 bg-transparent text-text-primary"><Music2Fill size={21} /><span className="text-[10px]">Library</span></button>
+          <button type="button" onClick={openSettings} className="flex flex-col items-center gap-1 border-0 bg-transparent text-text-primary"><AlbumFill size={21} /><span className="text-[10px]">Settings</span></button>
+        </nav>
+      )}
+
       <AddToPlaylistModal />
       <AddToLibraryModal />
       <RemoveFromPlaylistModal />
@@ -1076,7 +1095,7 @@ export default function AppFrame({ children }: AppFrameProps) {
       <SettingsModal />
       <UpdateModal />
       <UpdateToastBridge />
-      <WindowControls
+      {!isMobile && <WindowControls
         isFullscreen={isFullscreenPlayer}
         style={{
           top: isFullscreenPlayer || isEdgeToEdge ? 12 : 18,
@@ -1084,7 +1103,7 @@ export default function AppFrame({ children }: AppFrameProps) {
           transition: "all 0.28s cubic-bezier(0.22, 1, 0.36, 1)",
           zIndex: 80,
         }}
-      />
+      />}
     </div>
   );
 }

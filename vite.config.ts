@@ -6,6 +6,7 @@ import path from "path";
 import pkg from "./package.json" with { type: "json" };
 
 export default defineConfig(({ command, mode }) => {
+  const isAndroid = mode === "android";
   if (command === "serve") {
     const devSigningSecret = loadEnv(mode, process.cwd(), "LINER_").LINER_DEV_SIGNING_SECRET;
     if (devSigningSecret) process.env.LINER_DEV_SIGNING_SECRET = devSigningSecret;
@@ -18,7 +19,8 @@ export default defineConfig(({ command, mode }) => {
   plugins: [
     react(),
     tailwindcss(),
-    electron({
+    ...(isAndroid ? [] : [
+      electron({
       main: {
         entry: "electron/main.ts",
       },
@@ -35,7 +37,8 @@ export default defineConfig(({ command, mode }) => {
           },
         },
       },
-    }),
+      }),
+    ]),
   ],
   clearScreen: false,
   resolve: {
@@ -53,6 +56,8 @@ export default defineConfig(({ command, mode }) => {
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    // Capacitor serves the built SPA from its local WebView.
+    ...(isAndroid ? { sourcemap: false } : {}),
   },
   };
 });

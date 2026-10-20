@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+/* Mobile safe areas and touch behavior for the Capacitor shell. */
+html, body, #root {
+  min-height: 100%;
+}
+
+@supports (padding: env(safe-area-inset-top)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+    padding-left: env(safe-area-inset-left);
+  }
+}
+
+@media (pointer: coarse) {
+  * { -webkit-tap-highlight-color: transparent; }
+  body { overscroll-behavior: none; }
+}
+
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *, .dark, .dark *));
 
 :root {

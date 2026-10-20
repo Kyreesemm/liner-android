@@ -135,6 +135,40 @@ bun run electron:build:win
 
 Compiled distributions will be placed in the `release/` directory.
 
+### Android port (in progress)
+
+The renderer can be packaged in a Capacitor Android WebView. Install dependencies,
+create the native project once, then sync the built web assets:
+
+```bash
+pnpm install
+pnpm exec cap add android
+pnpm android:sync
+pnpm android:open
+```
+
+`pnpm build:android:web` builds the React app without starting the Electron
+main/preload bundles. The existing catalog, library, auth screens, and HTML audio
+player are still shared with desktop. This is an early test build, not a
+production release. Android API signing and basic mobile navigation are
+implemented. OAuth/deep-link return handling, encrypted token storage, and a
+foreground media service with notification controls remain to be implemented.
+Login tokens currently use WebView local storage. The signing key is obfuscated
+in native app code like the existing desktop version; replace it with a
+server-issued mobile flow before public distribution.
+
+To install the debug APK on a phone, copy `artifacts/Liner-Android-debug.apk` to
+the device and open it, allowing installation from that file source if Android
+asks. From a connected computer with USB debugging enabled, run:
+
+```bash
+adb install -r artifacts/Liner-Android-debug.apk
+```
+
+The current native player uses the WebView audio element. It can play while the
+app is open, but playback may stop when Android suspends the app; background
+playback and lock-screen media controls are not included in this first APK.
+
 ---
 
 ## Contributing

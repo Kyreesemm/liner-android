@@ -114,6 +114,7 @@ async function fetchWithTimeout(
 }
 
 function getPlatform(): string {
+  if (typeof window !== "undefined" && (window as Window & { Capacitor?: { getPlatform?: () => string } }).Capacitor?.getPlatform?.() === "android") return "android";
   if (typeof navigator === "undefined") return "desktop";
   const ua = navigator.userAgent.toLowerCase();
   if (ua.includes("win")) return "windows";

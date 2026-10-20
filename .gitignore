@@ -7,6 +7,8 @@
 /dist
 /dist-electron
 /release
+/artifacts/*.apk
+/artifacts/*.aab
 /build/*
 !/build/icons/
 !/build/icon.png
@@ -19,6 +21,10 @@
 # misc
 .DS_Store
 *.pem
+*.keystore
+*.jks
+*.p12
+*.pfx
 temp_cover.bin
 test_stills/
 

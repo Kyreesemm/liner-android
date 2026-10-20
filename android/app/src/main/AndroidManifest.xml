@@ -37,6 +37,11 @@
 
         </activity>
 
+        <service
+            android:name=".LinerMediaPlaybackService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

@@ -8,12 +8,14 @@ import type { Track } from "@/shared/types";
 import { pitchShifter } from "./pitchShifter";
 import { resolvePlaybackStream, type PlaybackStream } from "./streamResolver";
 import { downloadAudioBytes } from "@/shared/media/innertube";
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, registerPlugin } from "@capacitor/core";
 
 
 // error recovery tuning (see the audio "error" handler)
 const RECOVERY_HOLD_MS = 3000;
 const WAITING_GRACE_MS = 300; // a buffering hiccup shorter than this never shows // must play this far past a recovery before it may retry again
+
+const AndroidMediaSession = registerPlugin<{ update(options: { metadata: string }): Promise<void>; clear(): Promise<void>; consumePendingAction(): Promise<{ action?: string; value?: number }> }>("LinerMediaSession");
 
 export class PlayerRuntime {
   private audio: HTMLAudioElement;
@@ -45,6 +47,9 @@ export class PlayerRuntime {
   // loaded / cached track fires waiting -> playing within milliseconds, and flipping
   // the status for that re-animated the play / pause button on every seek
   private waitingTimer: ReturnType<typeof setTimeout> | null = null;
+  private lastAndroidMediaUpdateAt = 0;
+  private lastAndroidMediaTrackId: string | null = null;
+  private lastAndroidMediaStatus = "";
   public onEnded?: () => void;
   public onError?: (info: { trackId: string; message: string }) => void;
 
@@ -76,6 +81,7 @@ export class PlayerRuntime {
     usePlayerStore.subscribe((state, prevState) => {
       if (state.status !== prevState.status) {
         this.syncMediaSessionState(state.status);
+        this.updateAndroidMediaSession();
       }
       if (state.volume !== prevState.volume) {
         this.cancelFade();
@@ -170,6 +176,35 @@ export class PlayerRuntime {
     }
   }
 
+  private updateAndroidMediaSession(): void {
+    if (!Capacitor.isNativePlatform() || typeof window === "undefined") return;
+    const track = usePlayerStore.getState().currentTrack;
+    if (!track) {
+      this.lastAndroidMediaTrackId = null;
+      this.lastAndroidMediaStatus = "idle";
+      void AndroidMediaSession.clear();
+      return;
+    }
+    const status = usePlayerStore.getState().status;
+    const now = Date.now();
+    const trackChanged = track.id !== this.lastAndroidMediaTrackId;
+    const statusChanged = status !== this.lastAndroidMediaStatus;
+    if (!trackChanged && !statusChanged && now - this.lastAndroidMediaUpdateAt < 5000) return;
+    this.lastAndroidMediaTrackId = track.id;
+    this.lastAndroidMediaStatus = status;
+    this.lastAndroidMediaUpdateAt = now;
+    const metadata = JSON.stringify({
+      title: track.title,
+      artist: track.artists,
+      album: (track as Track & { albumTitle?: string }).albumTitle || "Liner",
+      artwork: track.coverUrl || "",
+      duration: this.audio.duration && Number.isFinite(this.audio.duration) ? Math.round(this.audio.duration * 1000) : track.durationMs,
+      position: Math.round((this.audio.currentTime || 0) * 1000),
+      playing: status === "playing" || status === "loading",
+    });
+    void AndroidMediaSession.update({ metadata }).catch((error) => log("yellow", "media session", String(error)));
+  }
+
   // windows' media controls (and apps built on them, like FluentFlyout) read this.
   // "loading" between tracks still reports playing so the session never looks finished.
   private syncMediaSessionState(status: string) {
@@ -209,6 +244,7 @@ export class PlayerRuntime {
   }
 
   public updateMediaSessionMetadata(track: Track | null) {
+    this.updateAndroidMediaSession();
     if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
     if (!track) {
       navigator.mediaSession.metadata = null;
@@ -242,6 +278,8 @@ export class PlayerRuntime {
 
       const posMs = Math.round(audioEl.currentTime * 1000);
       usePlayerStore.getState().setPosition(posMs);
+      this.syncMediaSessionPosition();
+      this.updateAndroidMediaSession();
       if (this.recoveryHoldUntilMs !== null && posMs >= this.recoveryHoldUntilMs) {
         this.recoveryHoldUntilMs = null;
         this.recoveryAttempts = 0;
@@ -255,13 +293,34 @@ export class PlayerRuntime {
 
       usePlayerStore.getState().setDuration(Math.round(audioEl.duration * 1000));
       this.syncMediaSessionPosition();
+      this.updateAndroidMediaSession();
     });
 
     for (const type of ["seeked", "ratechange", "play", "pause", "loadedmetadata"]) {
       audioEl.addEventListener(type, () => {
         if (this.isResetting || audioEl !== this.audio) return;
         this.syncMediaSessionPosition();
+        this.updateAndroidMediaSession();
       });
+    }
+
+    if (Capacitor.isNativePlatform() && typeof window !== "undefined") {
+      const handleMediaAction = (detail: { action: string; value?: number }) => {
+        const store = usePlayerStore.getState();
+        switch (detail.action) {
+          case "fun.tryliner.music.MEDIA_PLAY": store.dispatch({ type: "RESUME_REQUESTED" }); break;
+          case "fun.tryliner.music.MEDIA_PAUSE": store.dispatch({ type: "PAUSE_REQUESTED" }); break;
+          case "fun.tryliner.music.MEDIA_NEXT": store.dispatch({ type: "SKIP_NEXT" }); break;
+          case "fun.tryliner.music.MEDIA_PREVIOUS": store.dispatch({ type: "SKIP_PREVIOUS" }); break;
+          case "fun.tryliner.music.MEDIA_SEEK":
+            if (typeof detail.value === "number") store.dispatch({ type: "SEEK_COMMITTED", positionMs: detail.value });
+            break;
+        }
+      };
+      window.addEventListener("liner-media-action", ((event: CustomEvent<{ action: string; value?: number }>) => handleMediaAction(event.detail)) as EventListener);
+      void AndroidMediaSession.consumePendingAction().then((pending) => {
+        if (pending.action) handleMediaAction({ action: pending.action, value: pending.value });
+      }).catch(() => undefined);
     }
 
     audioEl.addEventListener("waiting", () => {

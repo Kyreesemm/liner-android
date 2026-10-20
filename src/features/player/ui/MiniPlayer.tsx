@@ -42,6 +42,7 @@ import { useCoverReady, CoverImage } from "@/features/covers";
 import { useCustomizationStore, getBlockStyle } from "@/features/settings";
 import ExplicitBadge from "@/shared/ui/ExplicitBadge";
 import { ArtistLink } from "@/features/artist";
+import { Capacitor } from "@capacitor/core";
 
 
 function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
@@ -213,6 +214,7 @@ function MiniPlayer({
       : typeof document !== "undefined" && document.documentElement.getAttribute("data-theme") === "light";
   const miniPlayerStyle = usePlayerStore((state) => state.miniPlayerStyle);
   const usesRoundedStyle = !embedded && miniPlayerStyle === "rounded";
+  const isMobileNative = Capacitor.isNativePlatform();
   const usesBackgroundProgress = true;
   const backgroundImage = useCustomizationStore((state) => state.backgroundImage);
   const miniplayerConfig = useCustomizationStore((state) => state.miniplayer);
@@ -575,7 +577,7 @@ function MiniPlayer({
   return (
     <div
       ref={miniPlayerRootRef}
-      className="relative h-[64px] w-full select-none"
+      className={`relative w-full select-none ${isMobileNative && embedded ? "h-[76px]" : "h-[64px]"}`}
     >
       <AnimatePresence>
         {volumeOpen && (
@@ -626,7 +628,7 @@ function MiniPlayer({
       </AnimatePresence>
 
       <div
-        className={`relative h-[64px] w-full overflow-hidden cursor-pointer ${
+        className={`relative ${isMobileNative && embedded ? "h-[76px]" : "h-[64px]"} w-full overflow-hidden cursor-pointer ${
           usesRoundedStyle
             ? `rounded-full border-[0.5px] border-border-tertiary ${
                 hasCustomBg ? "" : "bg-bg-primary"
@@ -698,7 +700,7 @@ function MiniPlayer({
           />
         )}
 
-        {embedded ? null : (
+        {embedded && isMobileNative ? null : embedded ? null : (
           <div
             className={`absolute z-30 prevent-seek ${
               usesRoundedStyle
@@ -722,17 +724,19 @@ function MiniPlayer({
         )}
         <div
           className={`relative grid h-full pointer-events-none ${
-            embedded
+            embedded && isMobileNative
+              ? "grid-cols-[minmax(0,1fr)_auto]"
+              : embedded
               ? "grid-cols-[280px_minmax(0,1fr)_260px]"
               : "grid-cols-[286px_minmax(0,1fr)]"
           } ${!usesRoundedStyle && !embedded ? "pb-[4px]" : ""}`}
         >
-          <div className="flex h-full items-center gap-[16px] px-[18px] pt-[1px] pointer-events-none cursor-default">
+          <div className={`flex h-full items-center pointer-events-none cursor-default ${isMobileNative && embedded ? "gap-[10px] px-[12px] pt-0" : "gap-[16px] px-[18px] pt-[1px]"}`}>
             <div
               role="button"
               tabIndex={0}
               aria-label="Open player"
-              className={`relative h-[38px] w-[38px] shrink-0 overflow-hidden rounded-[8px] bg-bg-elevated cursor-pointer pointer-events-auto prevent-seek ${
+              className={`relative ${isMobileNative && embedded ? "h-[48px] w-[48px]" : "h-[38px] w-[38px]"} shrink-0 overflow-hidden rounded-[8px] bg-bg-elevated cursor-pointer pointer-events-auto prevent-seek ${
                 coverUrl && !isCoverLoaded ? "animate-pulse" : ""
               }`}
               onClick={onFullscreenOpen}
@@ -742,19 +746,19 @@ function MiniPlayer({
                 key={coverUrl}
                 src={coverUrl}
                 alt="Track artwork"
-                width={38}
-                height={38}
+                width={isMobileNative && embedded ? 48 : 38}
+                height={isMobileNative && embedded ? 48 : 38}
                 priority
                 draggable={false}
                 onLoad={(e) => {
                   extractAccentColor(e.currentTarget as HTMLImageElement);
                 }}
-                className="h-[38px] w-[38px] object-cover rounded-[8px]"
+                className={`${isMobileNative && embedded ? "h-[48px] w-[48px]" : "h-[38px] w-[38px]"} object-cover rounded-[8px]`}
               />
             </div>
             <div className="flex min-w-0 flex-col pointer-events-none">
               <p
-                className="m-0 truncate text-[16px] font-[400] text-text-primary flex items-center gap-[6px] pointer-events-none"
+                className={`m-0 truncate text-text-primary flex items-center gap-[6px] pointer-events-none ${isMobileNative && embedded ? "text-[14px] font-[500]" : "text-[16px] font-[400]"}`}
                 style={{
                   fontFamily: "var(--font-inter), sans-serif",
                   lineHeight: "18px",
@@ -797,7 +801,7 @@ function MiniPlayer({
             <button
               type="button"
               aria-label={isLiked ? "Unlike" : "Like"}
-              className={`${iconButtonClass} shrink-0 transition-colors duration-150 pointer-events-auto prevent-seek ${
+                className={`${iconButtonClass} ${isMobileNative && embedded ? "hidden" : ""} shrink-0 transition-colors duration-150 pointer-events-auto prevent-seek ${
                 isLiked ? "text-accent-primary" : "text-text-secondary hover:text-text-primary"
               }`}
               onPointerDown={(e) => e.stopPropagation()}
@@ -809,12 +813,12 @@ function MiniPlayer({
           </div>
 
           <div
-            className={`flex h-full items-center pl-[10px] pr-[18px] pointer-events-none ${
+              className={`flex h-full items-center pointer-events-none ${isMobileNative && embedded ? "pl-0 pr-[10px]" : "pl-[10px] pr-[18px]"} ${
               embedded ? "col-start-3" : ""
             }`}
           >
             <div
-              className="ml-auto flex items-center gap-[2px] rounded-lg bg-[#ebebed] dark:bg-[#141414] p-[3px] pointer-events-auto prevent-seek cursor-default"
+              className={`ml-auto flex items-center gap-[2px] rounded-lg bg-[#ebebed] dark:bg-[#141414] p-[3px] pointer-events-auto prevent-seek cursor-default ${isMobileNative && embedded ? "hidden" : ""}`}
               onPointerDown={(e) => e.stopPropagation()}
             >
               <button
@@ -950,15 +954,15 @@ function MiniPlayer({
           </div>
         </div>
 
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <div className={`pointer-events-none absolute inset-0 flex items-center ${isMobileNative && embedded ? "justify-end pr-2" : "justify-center"}`}>
           <div
-            className="pointer-events-auto flex items-center gap-[8px] prevent-seek cursor-default"
+            className={`pointer-events-auto flex items-center gap-[8px] prevent-seek cursor-default ${isMobileNative && embedded ? "gap-1" : ""}`}
             onPointerDown={(e) => e.stopPropagation()}
           >
             <button
               type="button"
               aria-label="Previous track"
-              className={`${iconButtonClass} text-text-secondary hover:text-text-primary`}
+              className={`${iconButtonClass} ${isMobileNative && embedded ? "!text-text-primary !w-[32px] !h-[44px]" : "text-text-secondary hover:text-text-primary"}`}
               onPointerDown={(e) => e.stopPropagation()}
               onClick={() => {
                 void playerEngine.skipPrevious();
@@ -970,7 +974,7 @@ function MiniPlayer({
             <button
               type="button"
               aria-label={isPlaying ? "Pause" : "Play"}
-              className="inline-flex h-[34px] w-[34px] items-center justify-center rounded-full bg-btn-primary-bg text-btn-primary-text transition-all duration-150 ease-out hover:scale-105 active:scale-[0.96] border-none cursor-pointer shadow-sm"
+              className={`inline-flex items-center justify-center rounded-full bg-btn-primary-bg text-btn-primary-text transition-all duration-150 ease-out hover:scale-105 active:scale-[0.96] border-none cursor-pointer shadow-sm ${isMobileNative && embedded ? "h-[42px] w-[42px]" : "h-[34px] w-[34px]"}`}
               onPointerDown={(e) => e.stopPropagation()}
               onClick={() => {
                 void playerEngine.togglePlayPause();
@@ -1005,7 +1009,7 @@ function MiniPlayer({
             <button
               type="button"
               aria-label="Next track"
-              className={`${iconButtonClass} text-text-secondary hover:text-text-primary`}
+              className={`${iconButtonClass} ${isMobileNative && embedded ? "!text-text-primary !w-[32px] !h-[44px]" : "text-text-secondary hover:text-text-primary"}`}
               onPointerDown={(e) => e.stopPropagation()}
               onClick={() => {
                 void playerEngine.skipNext();

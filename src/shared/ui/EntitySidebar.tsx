@@ -17,6 +17,8 @@ export interface EntitySidebarProps {
   actions?: ReactNode;
   onBack?: () => void;
   backLabel?: string;
+  className?: string;
+  coverSizeClassName?: string;
 }
 
 export function EntitySidebar({
@@ -29,9 +31,11 @@ export function EntitySidebar({
   actions,
   onBack,
   backLabel = "Back",
+  className,
+  coverSizeClassName,
 }: EntitySidebarProps) {
   return (
-    <aside className="sticky top-[20px] w-[280px] shrink-0 self-start" data-no-window-drag>
+    <aside className={`sticky top-[20px] w-[280px] shrink-0 self-start ${className ?? ""}`} data-no-window-drag>
       {onBack && (
         <button
           type="button"
@@ -45,13 +49,14 @@ export function EntitySidebar({
       )}
 
       <div
-        className={`relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md ${
+        className={`relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md ${coverSizeClassName ?? ""} ${
           coverClassName || "bg-border-alpha-14"
         } ${onBack ? "mt-[16px]" : ""}`}
       >
         {cover}
       </div>
 
+      <div className="min-w-0 flex-1">
       <div
         className="mt-[16px] min-w-0"
         style={{ fontFamily: "var(--font-inter), sans-serif", fontWeight: 600 }}
@@ -82,6 +87,7 @@ export function EntitySidebar({
       {actions && (
         <div className="mt-[8px] flex items-center gap-[8px]">{actions}</div>
       )}
+      </div>
     </aside>
   );
 }

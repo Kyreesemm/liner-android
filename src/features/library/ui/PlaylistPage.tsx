@@ -35,6 +35,7 @@ import type { Track } from "@/shared/types";
 import { useTranslation } from "@/languages";
 import { api } from "@/shared/api";
 import { useIsContentTransparent } from "@/features/settings/store/customizationStore";
+import { Capacitor } from "@capacitor/core";
 import {
   useTrackSearch,
   useTrackSearchButtonLabel,
@@ -107,6 +108,7 @@ const TrackItem = memo(function TrackItem({
 });
 
 function LibraryPlaylistContent() {
+  const isMobile = Capacitor.isNativePlatform();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
@@ -485,7 +487,7 @@ function LibraryPlaylistContent() {
         aria-label={t("common.back")}
         data-no-tooltip="true"
         data-no-window-drag
-        className={`absolute top-[12px] left-[32px] z-20 group inline-flex h-[32px] shrink-0 items-center gap-[6px] rounded-md px-[10px] active:scale-[0.94] transition-all cursor-pointer select-none pointer-events-auto text-[13px] font-[500] border-0 !border-none ${
+        className={`absolute ${isMobile ? "top-[calc(env(safe-area-inset-top)+8px)] left-[12px]" : "top-[12px] left-[32px]"} z-20 group inline-flex h-[32px] shrink-0 items-center gap-[6px] rounded-md px-[10px] active:scale-[0.94] transition-all cursor-pointer select-none pointer-events-auto text-[13px] font-[500] border-0 !border-none ${
           hasCustomBg
             ? "apple-glass-pill !border-none"
             : "bg-bg-panel/85 backdrop-blur-xl text-text-primary hover:bg-bg-panel border-0 !border-none"
@@ -500,7 +502,7 @@ function LibraryPlaylistContent() {
       </button>
       {/* track search sits centred in the page header */}
       {viewData && isReady && (
-        <div className="absolute top-[12px] left-0 right-0 z-20 flex justify-center pointer-events-none">
+        <div className={`absolute ${isMobile ? "top-[calc(env(safe-area-inset-top)+8px)] right-3 justify-end" : "top-[12px] left-0 right-0 justify-center"} z-20 flex pointer-events-none`}>
           <TrackSearchField
             search={search}
             totalCount={currentTracks.length}
@@ -517,12 +519,14 @@ function LibraryPlaylistContent() {
               isReady ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
           >
-            <div className="relative z-10 flex flex-row items-stretch gap-[16px] pl-[32px] pr-[16px] h-full w-full min-h-0 box-border">
+            <div className={`relative z-10 flex ${isMobile ? "flex-col gap-0 px-3 pt-[calc(env(safe-area-inset-top)+48px)]" : "flex-row items-stretch gap-[16px] pl-[32px] pr-[16px] pt-0"} h-full w-full min-h-0 box-border`}>
               <div
-                className="shrink-0 w-[280px] self-start pt-[56px] pb-[24px]"
+                className={`shrink-0 ${isMobile ? "w-full pt-0 pb-3" : "w-[280px] self-start pt-[56px] pb-[24px]"}`}
                 data-no-window-drag
               >
                 <EntitySidebar
+                className={isMobile ? "!static !w-full !flex !flex-row !items-center !gap-3" : ""}
+                coverSizeClassName={isMobile ? "!aspect-square !h-[92px] !w-[92px] !shrink-0 !rounded-xl" : ""}
                 coverClassName={
                   hasCustomBg && (viewData.coverUrls?.length ?? (viewData.coverUrl ? 1 : 0)) === 0
                     ? "apple-glass-static pointer-events-none"
@@ -834,7 +838,7 @@ function LibraryPlaylistContent() {
                     targetScrollTopRef.current = null;
                   }
                 }}
-                className="min-w-0 flex-1 h-full min-h-0 overflow-y-auto overflow-x-hidden px-[8px] pt-[56px] pb-[24px] overscroll-contain"
+                className={`min-w-0 flex-1 h-full min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain ${isMobile ? "px-0 pt-2 pb-4" : "px-[8px] pt-[56px] pb-[24px]"}`}
                 style={{ willChange: "scroll-position" }}
               >
               {currentTracks.length === 0 ? (

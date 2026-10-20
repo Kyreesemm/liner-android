@@ -17,13 +17,17 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { PlayerUiElements } from "./PlayerUiElements";
 import { DownLine } from "@mingcute/react";
-import { preloadCoverArt, useCoverSrc } from "@/features/covers";
+import { PauseFill, PlayFill } from "@mingcute/react";
+import { SkipNext, SkipPrevious } from "@solar-icons/react";
+import { preloadCoverArt, useCoverSrc, CoverImage } from "@/features/covers";
+import { TimelineSlider } from "./TimelineSlider";
 import "@braccato/core/element";
 import "@braccato/core/styles/variables.css";
 import "@braccato/core/styles/lyrics.css";
 import "@braccato/core/styles/instrumental.css";
 import KawarpWrapper from "./KawarpWrapper";
 import { useTranslation } from "@/languages";
+import { Capacitor } from "@capacitor/core";
 
 const BRACCATO_TAG = "braccato-lyrics";
 
@@ -274,12 +278,13 @@ function BraccatoLyricsView({ lyrics }: BraccatoLyricsViewProps) {
       {createElement(BRACCATO_TAG, {
         ref: setElement,
         source: "#liner-audio",
-        className: "block flex-1 w-full h-full px-6",
+        className: `block flex-1 w-full h-full ${Capacitor.isNativePlatform() ? "px-2" : "px-6"}`,
         style: {
           overflowY: "auto",
           overflowX: "hidden",
           position: "relative",
           scrollbarWidth: "none",
+          ...(Capacitor.isNativePlatform() ? { "--blyrics-font-size": "1.7rem", "--blyrics-line-height": "1.3" } : {}),
         },
       })}
     </div>
@@ -297,6 +302,7 @@ export function FullscreenPlayer({
 }: FullscreenPlayerProps) {
   const { t } = useTranslation();
   const player = usePlayerState();
+  const isMobile = Capacitor.isNativePlatform();
   const coverUrl = player.currentTrack?.coverUrl;
   const kawarpSrc = useCoverSrc(coverUrl);
 
@@ -368,14 +374,14 @@ export function FullscreenPlayer({
 
       <div className="absolute inset-0 z-[1] bg-black/40" />
 
-      <div className="absolute inset-0 z-10 flex">
-        <div className="flex-1 flex flex-col items-center justify-center gap-5">
+      <div className={`absolute inset-0 z-10 flex ${isMobile ? "flex-col" : ""}`}>
+        {!isMobile && <div className="flex-1 flex flex-col items-center justify-center gap-5">
           <PlayerUiElements onClose={onClose} />
-        </div>
+        </div>}
 
-        <div className="flex-1 h-full min-h-0 pl-2 pr-6 flex flex-col relative">
+        <div className={`${isMobile ? "flex-1 min-h-0 px-4 pt-[calc(env(safe-area-inset-top)+48px)] pb-3" : "flex-1 h-full min-h-0 pl-2 pr-6"} flex flex-col relative`}>
           {showProviderIsland && (
-            <div className="absolute top-[12px] left-1/2 -translate-x-1/2 z-30 pointer-events-none flex justify-center">
+            <div className={`${isMobile ? "relative self-center mb-3" : "absolute top-[12px] left-1/2 -translate-x-1/2 pointer-events-none"} z-30 flex justify-center`}>
               <LyricsProviderIsland />
             </div>
           )}
@@ -394,7 +400,7 @@ export function FullscreenPlayer({
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0, pointerEvents: "none" }}
                   transition={{ duration: 0.22, ease: "easeInOut" }}
-                  className="absolute inset-0 flex flex-col"
+                className="absolute inset-0 flex flex-col"
                 >
                   <BraccatoLyricsView lyrics={braccatoLyrics} />
                 </motion.div>
@@ -473,6 +479,25 @@ export function FullscreenPlayer({
             ) : null}
           </AnimatePresence>
         </div>
+        {isMobile && (
+          <div className="shrink-0 px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)] bg-black/45 backdrop-blur-xl border-t border-white/10">
+            <div className="flex items-center gap-3 min-w-0 mb-3">
+              <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-white/10">
+                {coverUrl && <CoverImage src={coverUrl} alt={player.currentTrack?.title || ""} fill sizes="48px" className="object-cover" unoptimized />}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[15px] font-semibold text-white">{player.currentTrack?.title}</div>
+                <div className="truncate text-[12px] text-white/60">{player.currentTrack?.artists}</div>
+              </div>
+            </div>
+            <TimelineSlider positionMs={player.positionMs} durationMs={player.durationMs} onSeek={(pos) => playerEngine.seek(pos)} showTime size="sm" className="w-full" />
+            <div className="mt-2 flex items-center justify-center gap-10">
+              <button type="button" aria-label={t("player.previous")} className="border-0 bg-transparent text-white" onClick={() => void playerEngine.skipPrevious()}><SkipPrevious size={23} /></button>
+              <button type="button" aria-label={player.status === "playing" ? "Pause" : "Play"} className="flex h-12 w-12 items-center justify-center rounded-full border-0 bg-white text-black" onClick={() => void playerEngine.togglePlayPause()}>{player.status === "playing" ? <PauseFill size={24} /> : <PlayFill size={24} />}</button>
+              <button type="button" aria-label={t("player.next")} className="border-0 bg-transparent text-white" onClick={() => void playerEngine.skipNext()}><SkipNext size={23} /></button>
+            </div>
+          </div>
+        )}
       </div>
 
       <button
@@ -481,7 +506,7 @@ export function FullscreenPlayer({
         title={t("player.close_fullscreen") || "Close"}
         onClick={onClose}
         data-no-window-drag
-        className="absolute top-[12px] left-[12px] z-30 inline-flex h-[32px] w-[32px] items-center justify-center rounded-lg border-none bg-black/50 backdrop-blur-xl text-white/80 hover:text-white hover:bg-white/10 active:scale-[0.94] transition-all cursor-pointer select-none pointer-events-auto"
+        className={`absolute ${isMobile ? "top-[calc(env(safe-area-inset-top)+8px)] left-4" : "top-[12px] left-[12px]"} z-30 inline-flex h-[32px] w-[32px] items-center justify-center rounded-lg border-none bg-black/50 backdrop-blur-xl text-white/80 hover:text-white hover:bg-white/10 active:scale-[0.94] transition-all cursor-pointer select-none pointer-events-auto`}
       >
         <DownLine size={18} />
       </button>

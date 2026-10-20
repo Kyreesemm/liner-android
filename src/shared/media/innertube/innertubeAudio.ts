@@ -3,6 +3,7 @@ import { PLAYBACK_PROFILES } from "./playbackProfiles";
 import { resetClientVisitorData } from "@/shared/api/visitorSession";
 import { log } from "@/shared/utils/logger";
 import { resetWebRemixSession, resolveWebRemixAudioStream } from "./webRemixAudio";
+import { Capacitor } from "@capacitor/core";
 import {
   extractAudioFormats,
   playabilityError,
@@ -40,6 +41,9 @@ let webRemixFailures = 0;
 let lastWebRemixError = "";
 
 async function assertStreamReachable(url: string, contentLength: number | undefined, signal?: AbortSignal): Promise<void> {
+  // Android WebView's native media stack can stream this URL directly, but its
+  // cross-origin fetch probe can fail before playback due to CORS policy.
+  if (Capacitor.isNativePlatform()) return;
   const probe = new URL(url);
   const offset = contentLength && contentLength > PROBE_OFFSET ? PROBE_OFFSET : 0;
   probe.searchParams.set("range", `${offset}-${offset}`);

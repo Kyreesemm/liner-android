@@ -8,6 +8,7 @@ import type { Track } from "@/shared/types";
 import { pitchShifter } from "./pitchShifter";
 import { resolvePlaybackStream, type PlaybackStream } from "./streamResolver";
 import { downloadAudioBytes } from "@/shared/media/innertube";
+import { Capacitor } from "@capacitor/core";
 
 
 // error recovery tuning (see the audio "error" handler)
@@ -53,7 +54,9 @@ export class PlayerRuntime {
     if (!audio) {
       audio = new Audio();
       audio.id = "liner-audio";
-      audio.crossOrigin = "anonymous";
+      // Electron repairs YouTube's CORS headers. Capacitor Android also proxies
+      // fetch/XHR through native HttpURLConnection when CapacitorHttp is enabled.
+      if (!Capacitor.isNativePlatform()) audio.crossOrigin = "anonymous";
       audio.preload = "auto";
       if (typeof document !== "undefined") {
         document.body.appendChild(audio);
@@ -735,8 +738,10 @@ export class PlayerRuntime {
       const streamBitrate = stream.bitrate;
       this.currentSessionExpiresAt = stream.expiresAtMs;
       log("cyan", "playback", `resolved stream for ${track.title}`);
-      const url = stream.blob ? URL.createObjectURL(stream.blob) : stream.url;
-      this.attachSource(url, Boolean(stream.blob), track.id);
+      const attachedBlob = stream.blob;
+      const url = attachedBlob ? URL.createObjectURL(attachedBlob) : stream.url;
+      if (!url) throw new Error("Resolved playback stream has no playable URL or audio data.");
+      this.attachSource(url, Boolean(attachedBlob), track.id);
       this.audio.volume = 0;
       this.audio.load();
       this.applyPlaybackRateAndPitch();
@@ -968,7 +973,7 @@ export class PlayerRuntime {
       "download",
       `${Math.round(bytes.byteLength / 1024)} KB in ${Math.round(performance.now() - startedAt)}ms (${stream.contentLength ? "chunked" : "single request"})`,
     );
-    return new Blob([bytes], { type: mimeType });
+    return new Blob([new Uint8Array(bytes).buffer], { type: mimeType });
   }
 
   private cacheAudioInBackground(track: Track, stream: PlaybackStream, signal: AbortSignal) {

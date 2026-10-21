@@ -49,7 +49,9 @@ renderer.log
 signer/
 
 # agent rules
+AGENTS.md is tracked; private agent context files are not
 GEMINI.md
+CLAUDE_ANDROID_CONTEXT.md
 .agents/
 .agent/
 no-public/

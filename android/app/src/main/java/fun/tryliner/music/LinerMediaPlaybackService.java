@@ -192,8 +192,17 @@ public class LinerMediaPlaybackService extends Service {
     private void stopPlaybackService() {
         if (session != null) { session.setActive(false); session.release(); session = null; }
         handler.removeCallbacks(progressTicker);
+        if (notifications != null) notifications.cancel(NOTIFICATION_ID);
         stopForeground(true);
         stopSelf();
+    }
+
+    @Override public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+        // The app was swiped away from recents: the WebView (and playback with
+        // it) is gone, so the foreground service must not linger with a stale
+        // "playing" notification.
+        stopPlaybackService();
     }
 
     @Override public void onDestroy() {

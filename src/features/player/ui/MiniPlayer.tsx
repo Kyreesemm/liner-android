@@ -574,6 +574,212 @@ function MiniPlayer({
   const [scrubRatio, setScrubRatio] = useState<number | null>(null);
   const activeProgress = scrubRatio !== null ? scrubRatio : progress;
 
+  if (isMobileNative && embedded) {
+    return (
+      <div
+        ref={miniPlayerRootRef}
+        className="relative w-full select-none h-[76px]"
+      >
+        <AnimatePresence>
+          {speedOpen && (
+            <motion.div
+              key="speed-popup"
+              ref={speedPopupRef}
+              initial={{ opacity: 0, y: 10, scale: 0.985 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.985 }}
+              transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute bottom-[74px] z-[92] w-[270px] rounded-xl bg-bg-primary border border-border-primary/50 p-[12px] shadow-2xl prevent-seek"
+              style={speedPopupStyle}
+              onPointerDown={(e) => e.stopPropagation()}
+            >
+              <SpeedPitchPicker onClose={() => setSpeedOpen(false)} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div
+          className="relative h-[76px] w-full overflow-hidden cursor-pointer rounded-sm bg-bg-primary flex items-center px-[12px] gap-[10px]"
+          style={miniplayerCustomStyle}
+          onPointerDown={(e) => {
+            if (e.button !== 0) return;
+            const target = e.target as Element | null;
+            if (
+              !target ||
+              target.closest?.(
+                "button, a, input, [role='button'], [role='slider'], .prevent-seek",
+              )
+            ) {
+              return;
+            }
+            const card = e.currentTarget;
+            const rect = card.getBoundingClientRect();
+            if (!rect.width || !durationMs) return;
+
+            const calcRatio = (clientX: number) =>
+              Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+
+            const initialRatio = calcRatio(e.clientX);
+            setScrubRatio(initialRatio);
+
+            const onMove = (ev: PointerEvent) => {
+              const r = calcRatio(ev.clientX);
+              setScrubRatio(r);
+            };
+
+            const onUp = (ev: PointerEvent) => {
+              const finalRatio = calcRatio(ev.clientX);
+              setScrubRatio(null);
+              playerEngine.seek(finalRatio * durationMs);
+              window.removeEventListener("pointermove", onMove);
+              window.removeEventListener("pointerup", onUp);
+              window.removeEventListener("pointercancel", onUp);
+            };
+
+            window.addEventListener("pointermove", onMove);
+            window.addEventListener("pointerup", onUp);
+            window.addEventListener("pointercancel", onUp);
+          }}
+        >
+          {usesBackgroundProgress && (
+            <div
+              className="absolute inset-y-0 left-0 z-0 pointer-events-none"
+              style={{
+                backgroundColor: accentColor,
+                width: `${activeProgress * 100}%`,
+                willChange: "width",
+                transition:
+                  scrubRatio !== null
+                    ? "none"
+                    : "width 200ms cubic-bezier(0.22, 1, 0.36, 1)",
+              }}
+            />
+          )}
+
+          {/* Cover image */}
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label="Open player"
+            className={`relative z-10 h-[48px] w-[48px] shrink-0 overflow-hidden rounded-[8px] bg-bg-elevated cursor-pointer pointer-events-auto prevent-seek ${
+              coverUrl && !isCoverLoaded ? "animate-pulse" : ""
+            }`}
+            onClick={onFullscreenOpen}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <CoverImage
+              key={coverUrl}
+              src={coverUrl}
+              alt="Track artwork"
+              width={48}
+              height={48}
+              priority
+              draggable={false}
+              onLoad={(e) => {
+                extractAccentColor(e.currentTarget as HTMLImageElement);
+              }}
+              className="h-[48px] w-[48px] object-cover rounded-[8px]"
+            />
+          </div>
+
+          {/* Track title & artist (with truncation so it never overflows) */}
+          <div className="relative z-10 flex min-w-0 flex-1 flex-col pointer-events-none pr-[6px]">
+            <p
+              className="m-0 truncate text-text-primary flex items-center gap-[6px] pointer-events-none text-[14px] font-[500]"
+              style={{
+                fontFamily: "var(--font-inter), sans-serif",
+                lineHeight: "18px",
+                letterSpacing: "0",
+              }}
+            >
+              <span
+                role="button"
+                tabIndex={0}
+                aria-label="Open player"
+                className="min-w-0 truncate cursor-pointer pointer-events-auto prevent-seek"
+                onClick={onFullscreenOpen}
+                onPointerDown={(e) => e.stopPropagation()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onFullscreenOpen?.();
+                  }
+                }}
+              >
+                {trackTitle}
+              </span>
+            </p>
+            <p
+              className="m-0 mt-[4px] flex min-w-0 items-center gap-[5px] text-[13px] font-[300] text-text-tertiary pointer-events-none truncate"
+              style={{
+                fontFamily: "var(--font-inter), sans-serif",
+                lineHeight: "15px",
+              }}
+            >
+              {player.currentTrack?.explicit && <ExplicitBadge />}
+              <span className="truncate min-w-0">
+                <ArtistLink
+                  name={trackArtists}
+                  artistId={player.currentTrack?.artistId}
+                  artistList={player.currentTrack?.artistList}
+                  className="text-text-tertiary pointer-events-auto truncate"
+                />
+              </span>
+            </p>
+          </div>
+
+          {/* Right controls: Heart + Play/Pause */}
+          <div
+            className="relative z-10 flex items-center gap-[10px] shrink-0 pointer-events-auto prevent-seek"
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              aria-label={isLiked ? "Unlike" : "Like"}
+              className={`${iconButtonClass} shrink-0 transition-colors duration-150 pointer-events-auto prevent-seek ${
+                isLiked ? "text-accent-primary" : "text-text-secondary hover:text-text-primary"
+              }`}
+              onClick={handleLikeToggle}
+              style={{ cursor: "pointer" }}
+            >
+              {isLiked ? <HeartFill size={20} /> : <HeartLine size={20} />}
+            </button>
+            <button
+              type="button"
+              aria-label={isPlaying ? "Pause" : "Play"}
+              className="inline-flex items-center justify-center rounded-full bg-btn-primary-bg text-btn-primary-text transition-all duration-150 ease-out hover:scale-105 active:scale-[0.96] border-none cursor-pointer shadow-sm h-[42px] w-[42px] shrink-0"
+              onClick={() => {
+                void playerEngine.togglePlayPause();
+              }}
+              style={{ cursor: "pointer" }}
+            >
+              <span className="relative flex h-[16px] w-[16px] items-center justify-center">
+                <span
+                  className={`absolute inset-0 flex items-center justify-center ${
+                    isLoading ? "opacity-0" : ""
+                  } transition-transform ${
+                    isPlaying ? "" : "translate-x-[0.5px]"
+                  }`}
+                >
+                  <PlayerMorphIcon
+                    icon={isPlaying ? ICON_PAUSE : ICON_PLAY}
+                    size={16}
+                  />
+                </span>
+                {isLoading && (
+                  <span
+                    className="absolute h-[16px] w-[16px] animate-spin rounded-full border-[2px] border-current border-t-transparent"
+                    aria-label="Loading playback"
+                  />
+                )}
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={miniPlayerRootRef}

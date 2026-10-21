@@ -4,6 +4,7 @@ import lottie, { type AnimationItem } from "lottie-web";
 import { FolderOpenLine, CheckLine } from "@mingcute/react";
 import { CheckCircle } from "@solar-icons/react";
 import Button from "@/shared/ui/Button";
+import { Capacitor } from "@capacitor/core";
 import { useToast } from "@/shared/ui";
 import { useTranslation } from "@/languages";
 import cleanDuckAnimationData from "@/assets/animations/clean_duck.json";
@@ -106,6 +107,7 @@ function TelegramCleaningDuck({ size = 130 }: { size?: number }) {
 export function StorageTab({ searchQuery: _searchQuery }: { searchQuery?: string }) {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const isMobile = Capacitor.isNativePlatform();
 
   const initialCached = getCachedStorageAnalytics();
   const [analytics, setAnalytics] = useState<StorageAnalytics | null>(initialCached);
@@ -537,26 +539,49 @@ export function StorageTab({ searchQuery: _searchQuery }: { searchQuery?: string
             />
           </div>
 
-          <div className="relative w-full h-[16px] select-none text-[11px]">
-            {steps.map((s, i) => {
-              const tickPct = (i / (steps.length - 1)) * 100;
-              const isActive = i === activeIdx;
-              return (
-                <span
-                  key={s.bytes}
-                  onClick={() => void handleLimitChange(s.bytes)}
-                  style={{ left: `${tickPct}%` }}
-                  className={`absolute -translate-x-1/2 whitespace-nowrap cursor-pointer transition-colors ${
-                    isActive
-                      ? "text-text-primary font-[600]"
-                      : "text-text-tertiary hover:text-text-secondary font-[500]"
-                  }`}
-                >
-                  {s.label}
-                </span>
-              );
-            })}
-          </div>
+          {isMobile ? (
+            // narrow screen: absolute-positioned labels collide, lay them out
+            // in a simple justify-between row instead
+            <div className="w-full flex items-center justify-between text-[10px] pt-0.5 select-none">
+              {steps.map((s, i) => {
+                const isActive = i === activeIdx;
+                return (
+                  <span
+                    key={s.bytes}
+                    onClick={() => void handleLimitChange(s.bytes)}
+                    className={`cursor-pointer transition-colors whitespace-nowrap ${
+                      isActive
+                        ? "text-text-primary font-[600]"
+                        : "text-text-tertiary font-[500]"
+                    }`}
+                  >
+                    {s.label}
+                  </span>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="relative w-full h-[16px] select-none text-[11px]">
+              {steps.map((s, i) => {
+                const tickPct = (i / (steps.length - 1)) * 100;
+                const isActive = i === activeIdx;
+                return (
+                  <span
+                    key={s.bytes}
+                    onClick={() => void handleLimitChange(s.bytes)}
+                    style={{ left: `${tickPct}%` }}
+                    className={`absolute -translate-x-1/2 whitespace-nowrap cursor-pointer transition-colors ${
+                      isActive
+                        ? "text-text-primary font-[600]"
+                        : "text-text-tertiary hover:text-text-secondary font-[500]"
+                    }`}
+                  >
+                    {s.label}
+                  </span>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
@@ -567,7 +592,7 @@ export function StorageTab({ searchQuery: _searchQuery }: { searchQuery?: string
           type="button"
           disabled={selectedBytes === 0 || loading}
           onClick={handleClearSelected}
-          className="flex-1 justify-center !h-[40px] !text-[13.5px] font-[500] rounded-xl"
+          className="flex-1 justify-center !h-[40px] !text-[13.5px] font-[500] rounded-xl whitespace-nowrap"
         >
           {selectedBytes > 0
             ? t("settings.storage.clear_button", {
@@ -576,17 +601,20 @@ export function StorageTab({ searchQuery: _searchQuery }: { searchQuery?: string
             : t("settings.storage.clear_selected")}
         </Button>
 
-        <Button
-          variant="secondary"
-          size="default"
-          type="button"
-          onClick={handleOpenFolder}
-          title={t("settings.storage.open_folder")}
-          className="flex items-center gap-[6px] !h-[40px] px-[14px] font-[500] text-[13px] rounded-xl shrink-0"
-        >
-          <FolderOpenLine size={16} />
-          <span>{t("settings.storage.open_folder")}</span>
-        </Button>
+        {/* opening a native folder is an electron-only feature */}
+        {!isMobile && (
+          <Button
+            variant="secondary"
+            size="default"
+            type="button"
+            onClick={handleOpenFolder}
+            title={t("settings.storage.open_folder")}
+            className="flex items-center gap-[6px] !h-[40px] px-[14px] font-[500] text-[13px] rounded-xl shrink-0"
+          >
+            <FolderOpenLine size={16} />
+            <span>{t("settings.storage.open_folder")}</span>
+          </Button>
+        )}
       </div>
           </motion.div>
         )}

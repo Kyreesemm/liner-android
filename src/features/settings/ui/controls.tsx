@@ -1,7 +1,11 @@
 import type { ReactNode } from "react";
+import { Capacitor } from "@capacitor/core";
 import { getTranslationsForAllLocales } from "@/languages";
 
 const font = { fontFamily: "var(--font-inter), sans-serif" } as const;
+
+// native android webview: narrow screen, cannot fit wide controls next to text
+const isNative = Capacitor.isNativePlatform();
 
 // single-line row: label on the left, control pinned right, like the reference mock
 export function SettingRow({
@@ -11,6 +15,7 @@ export function SettingRow({
   titleKey,
   descKey,
   searchQuery,
+  stack,
 }: {
   title: string;
   description?: string;
@@ -18,6 +23,11 @@ export function SettingRow({
   titleKey?: string;
   descKey?: string;
   searchQuery?: string;
+  /**
+   * Put the control below the text on narrow (native) screens instead of
+   * squeezing both into one line. Desktop ignores this and stays one-line.
+   */
+  stack?: boolean;
 }) {
   if (searchQuery && searchQuery.trim()) {
     const q = searchQuery.toLowerCase().trim();
@@ -35,9 +45,23 @@ export function SettingRow({
     if (!isMatch) return null;
   }
 
+  const stacked = stack === true && isNative;
+
   return (
-    <div className="flex items-center justify-between gap-[16px] py-[13px]">
-      <div className="flex min-w-0 max-w-[360px] flex-col gap-[2px]">
+    <div
+      className={
+        stacked
+          ? "flex flex-col items-stretch gap-[10px] py-[13px]"
+          : "flex items-center justify-between gap-[16px] py-[13px]"
+      }
+    >
+      <div
+        className={
+          stacked
+            ? "flex min-w-0 flex-col gap-[2px]"
+            : "flex min-w-0 max-w-[360px] flex-col gap-[2px]"
+        }
+      >
         <span
           className="text-text-primary text-[13px] font-[500] leading-snug"
           style={font}
@@ -53,7 +77,7 @@ export function SettingRow({
           </span>
         ) : null}
       </div>
-      {control ? <div className="shrink-0">{control}</div> : null}
+      {control ? <div className={stacked ? "" : "shrink-0"}>{control}</div> : null}
     </div>
   );
 }

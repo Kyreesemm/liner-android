@@ -49,6 +49,10 @@ const TAB_GROUPS: { labelKey: "preferences" | "application"; ids: TabId[] }[] = 
   { labelKey: "application", ids: ["Storage", "About"] },
 ];
 
+// desktop-only tabs: overlay, discord rpc and keyboard shortcuts have no
+// effect inside the android webview, so they are not shown there
+const TABS_HIDDEN_ON_MOBILE: TabId[] = ["Shortcuts", "Overlay", "Discord"];
+
 
 const SETTING_ITEMS: { tabId: TabId; titleKey: string; descKey?: string }[] = [
   // Playback
@@ -147,11 +151,18 @@ export default function SettingsModal() {
     About: t("settings.about.tagline"),
   };
 
+  const visibleTabs = useMemo<TabId[]>(
+    () =>
+      TAB_GROUPS.flatMap((group) => group.ids).filter(
+        (id) => !isMobile || !TABS_HIDDEN_ON_MOBILE.includes(id),
+      ),
+    [isMobile],
+  );
+
   const matchingTabIds = useMemo(() => {
     if (!searchQuery.trim()) return null;
     const query = searchQuery.toLowerCase().trim();
     const set = new Set<TabId>();
-
     const TAB_LABEL_KEYS: Record<TabId, string> = {
       Playback: "settings.tabs.playback",
       Shortcuts: "settings.tabs.shortcuts",
@@ -197,27 +208,34 @@ export default function SettingsModal() {
       }
     });
 
-    return set;
-  }, [searchQuery]);
+    return new Set([...set].filter((id) => visibleTabs.includes(id)));
+  }, [searchQuery, visibleTabs]);
 
   const filteredGroups = useMemo(() => {
-    if (!matchingTabIds) return TAB_GROUPS;
+    const base = TAB_GROUPS.map((group) => ({
+      ...group,
+      ids: group.ids.filter((id) => visibleTabs.includes(id)),
+    })).filter((group) => group.ids.length > 0);
 
-    return TAB_GROUPS.map((group) => {
-      const ids = group.ids.filter((id) => matchingTabIds.has(id));
-      return { ...group, ids };
-    }).filter((group) => group.ids.length > 0);
-  }, [matchingTabIds]);
+    if (!matchingTabIds) return base;
+
+    return base
+      .map((group) => {
+        const ids = group.ids.filter((id) => matchingTabIds.has(id));
+        return { ...group, ids };
+      })
+      .filter((group) => group.ids.length > 0);
+  }, [matchingTabIds, visibleTabs]);
 
   useEffect(() => {
     if (!searchQuery.trim()) return;
     if (matchingTabIds && matchingTabIds.size > 0 && !matchingTabIds.has(activeTab)) {
-      const firstMatch = TAB_GROUPS.flatMap((g) => g.ids).find((id) => matchingTabIds.has(id));
+      const firstMatch = visibleTabs.find((id) => matchingTabIds.has(id));
       if (firstMatch) {
         setActiveTab(firstMatch);
       }
     }
-  }, [searchQuery, matchingTabIds, activeTab]);
+  }, [searchQuery, matchingTabIds, activeTab, visibleTabs]);
 
   const openExternal = (url: string) => {
     window.open(url, "_blank", "noopener,noreferrer");
@@ -383,7 +401,7 @@ export default function SettingsModal() {
         <div className="flex flex-col items-stretch gap-[12px] px-[16px] pt-[max(16px,env(safe-area-inset-top))] pb-[10px] shrink-0">
           {isMobile && <div className="flex items-center justify-between"><h2 className="text-text-primary text-[20px] m-0 font-semibold" style={font}>{t("settings.title")}</h2><button type="button" aria-label={t("common.close") || "Close"} onClick={handleClose} className="w-10 h-10 inline-flex items-center justify-center rounded-lg text-text-secondary bg-transparent border-0"><CloseLine size={21} /></button></div>}
           {isMobile && <div className="relative"><Search2Line size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none"/><input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={t("settings.search_placeholder")} className="w-full h-11 pl-10 pr-4 bg-border-alpha-14 text-text-primary text-[14px] rounded-xl border-0 outline-none placeholder:text-text-tertiary" style={font}/></div>}
-          {isMobile && <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label={t("settings.title")}>{TAB_GROUPS.flatMap(group => group.ids).map(id => {const Icon=TAB_ICONS[id]; const selected=id===activeTab; return <button key={id} type="button" role="tab" aria-selected={selected} onClick={()=>setActiveTab(id)} className={`flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-[12px] border-0 ${selected ? "bg-text-primary text-bg-primary" : "bg-border-alpha-14 text-text-secondary"}`}><Icon size={15}/>{tabLabels[id]}</button>})}</div>}
+          {isMobile && <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label={t("settings.title")}>{visibleTabs.map(id => {const Icon=TAB_ICONS[id]; const selected=id===activeTab; return <button key={id} type="button" role="tab" aria-selected={selected} onClick={()=>setActiveTab(id)} className={`flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-[12px] border-0 ${selected ? "bg-text-primary text-bg-primary" : "bg-border-alpha-14 text-text-secondary"}`}><Icon size={15}/>{tabLabels[id]}</button>})}</div>}
           <div className={`${isMobile ? "hidden" : "flex items-start justify-between gap-[16px]"}`}>
           <div className="min-w-0">
             <h3

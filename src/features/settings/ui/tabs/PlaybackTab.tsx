@@ -57,6 +57,7 @@ export function PlaybackTab({ searchQuery }: { searchQuery?: string }) {
         titleKey="settings.track_double_click.title"
         descKey="settings.track_double_click.description"
         searchQuery={searchQuery}
+        stack
         control={
           mounted ? (
             <SegmentedControl
@@ -86,6 +87,7 @@ export function PlaybackTab({ searchQuery }: { searchQuery?: string }) {
         titleKey="settings.default_playback_context.title"
         descKey="settings.default_playback_context.description"
         searchQuery={searchQuery}
+        stack
         control={
           mounted ? (
             <SegmentedControl

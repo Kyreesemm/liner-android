@@ -25,6 +25,7 @@ import java.util.concurrent.Executors;
 public class LinerMediaPlaybackService extends Service {
     static final String ACTION_UPDATE = "fun.tryliner.music.MEDIA_UPDATE";
     static final String ACTION_STOP = "fun.tryliner.music.MEDIA_STOP";
+    static final String ACTION_HIDE = "fun.tryliner.music.MEDIA_HIDE";
     static final String ACTION_PLAY = "fun.tryliner.music.MEDIA_PLAY";
     static final String ACTION_PAUSE = "fun.tryliner.music.MEDIA_PAUSE";
     static final String ACTION_NEXT = "fun.tryliner.music.MEDIA_NEXT";
@@ -77,6 +78,14 @@ public class LinerMediaPlaybackService extends Service {
         String action = intent.getAction();
         if (ACTION_STOP.equals(action)) {
             stopPlaybackService();
+            return START_NOT_STICKY;
+        }
+        if (ACTION_HIDE.equals(action)) {
+            // The user swiped the notification away. Playback continues in the
+            // WebView, but do not keep (or rebuild) the notification or the
+            // service alive after that: the notification comes back only when
+            // the player starts playing again and re-updates the session.
+            if (!playing) stopPlaybackService();
             return START_NOT_STICKY;
         }
         if (ACTION_PLAY.equals(action) || ACTION_PAUSE.equals(action) || ACTION_NEXT.equals(action) || ACTION_PREVIOUS.equals(action)) {
@@ -145,12 +154,16 @@ public class LinerMediaPlaybackService extends Service {
         Intent launch = getPackageManager().getLaunchIntentForPackage(getPackageName());
         PendingIntent content = PendingIntent.getActivity(this, 0, launch,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        Intent hide = new Intent(this, LinerMediaPlaybackService.class).setAction(ACTION_HIDE);
+        PendingIntent delete = PendingIntent.getService(this, ACTION_HIDE.hashCode(), hide,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder builder = Build.VERSION.SDK_INT >= 26
             ? new Notification.Builder(this, CHANNEL_ID)
             : new Notification.Builder(this);
         builder.setContentTitle(title).setContentText(artist).setSubText("Liner")
             .setSmallIcon(R.drawable.ic_stat_liner).setContentIntent(content)
-            .setShowWhen(false).setOngoing(playing).setVisibility(Notification.VISIBILITY_PUBLIC);
+            .setShowWhen(false).setOngoing(playing).setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setDeleteIntent(delete);
         if (artwork != null) builder.setLargeIcon(artwork);
         builder.addAction(action(R.drawable.ic_media_previous, "Previous", ACTION_PREVIOUS));
         builder.addAction(action(playing ? R.drawable.ic_media_pause : R.drawable.ic_media_play,

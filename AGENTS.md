@@ -51,6 +51,7 @@ If the working tree has uncommitted changes that you did not make, stop and ask 
 - Work in small steps. One task per session: one screen, one bug, one feature.
 - Before editing, read the relevant files. Do not guess the structure.
 - Commit after each working step with a clear message. Use conventional prefixes like `feat(android):`, `fix(android):`, `docs:`, `chore:`, matching the existing history.
+- Maintain and update `CHANGELOG.md` with notable changes and APK versions whenever features or fixes are added.
 - Do not add dependencies without a clear reason. If you add one, say why in the commit message and the final report.
 - Do not do large refactors, reformatting, or renaming unless the task asks for it. Large diffs in shared files make upstream merges painful.
 - If requirements are unclear, ask one focused question instead of guessing.

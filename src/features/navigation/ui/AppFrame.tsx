@@ -757,7 +757,7 @@ export default function AppFrame({ children }: AppFrameProps) {
               searchOpen || isFullscreenPlayer
                 ? "overflow-hidden"
                 : "overflow-y-auto"
-            } ${isMobile ? "pt-[max(12px,env(safe-area-inset-top))]" : ""}`}
+            }`}
           >
 
             <PageTransition>

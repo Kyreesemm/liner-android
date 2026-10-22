@@ -90,14 +90,8 @@ export default function HomePage() {
     : "bg-bg-elevated hover:bg-[#dedee3] dark:hover:bg-border-alpha-14 transition-colors duration-150 ease-out";
 
   return (
-    <div className="relative h-full w-full overflow-y-auto overflow-x-hidden bg-transparent">
+    <div className="relative h-full w-full overflow-y-auto overflow-x-hidden bg-transparent pt-[calc(env(safe-area-inset-top)+12px)]">
 
-      <div
-        data-window-drag
-        className="sticky top-0 z-20 h-[32px] w-full shrink-0 select-none pointer-events-auto"
-        style={{ marginBottom: "-32px" }}
-        aria-hidden="true"
-      />
       {!hasCustomBg && (
         <div
           aria-hidden="true"

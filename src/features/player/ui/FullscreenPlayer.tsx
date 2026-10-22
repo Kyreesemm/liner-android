@@ -18,7 +18,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { PlayerUiElements } from "./PlayerUiElements";
 import { DownLine } from "@mingcute/react";
 import { PauseFill, PlayFill } from "@mingcute/react";
-import { SkipNext, SkipPrevious } from "@solar-icons/react";
+import { SkipNext, SkipPrevious, Shuffle, Repeat, RepeatOne } from "@solar-icons/react";
+import { isRadioContext, nextRepeatMode } from "../engine/radioMode";
 import { preloadCoverArt, useCoverSrc, CoverImage } from "@/features/covers";
 import { TimelineSlider } from "./TimelineSlider";
 import "@braccato/core/element";
@@ -375,13 +376,34 @@ export function FullscreenPlayer({
       <div className="absolute inset-0 z-[1] bg-black/40" />
 
       <div className={`absolute inset-0 z-10 flex ${isMobile ? "flex-col" : ""}`}>
+        {isMobile && (
+          <div className="shrink-0 px-4 pt-[calc(env(safe-area-inset-top)+12px)] pb-2 flex items-center justify-between z-30">
+            <button
+              type="button"
+              aria-label={t("player.close_fullscreen")}
+              title={t("player.close_fullscreen") || "Close"}
+              onClick={onClose}
+              data-no-window-drag
+              className="inline-flex h-[32px] w-[32px] items-center justify-center rounded-lg border-none bg-black/50 backdrop-blur-xl text-white/80 hover:text-white hover:bg-white/10 active:scale-[0.94] transition-all cursor-pointer select-none pointer-events-auto"
+            >
+              <DownLine size={18} />
+            </button>
+            {showProviderIsland && (
+              <div className="flex justify-center">
+                <LyricsProviderIsland />
+              </div>
+            )}
+            <div className="w-[32px]" />
+          </div>
+        )}
+
         {!isMobile && <div className="flex-1 flex flex-col items-center justify-center gap-5">
           <PlayerUiElements onClose={onClose} />
         </div>}
 
-        <div className={`${isMobile ? "flex-1 min-h-0 px-4 pt-[calc(env(safe-area-inset-top)+48px)] pb-3" : "flex-1 h-full min-h-0 pl-2 pr-6"} flex flex-col relative`}>
-          {showProviderIsland && (
-            <div className={`${isMobile ? "relative self-center mb-3" : "absolute top-[12px] left-1/2 -translate-x-1/2 pointer-events-none"} z-30 flex justify-center`}>
+        <div className={`${isMobile ? "flex-1 min-h-0 px-4 pt-2 pb-3" : "flex-1 h-full min-h-0 pl-2 pr-6"} flex flex-col relative`}>
+          {!isMobile && showProviderIsland && (
+            <div className="absolute top-[12px] left-1/2 -translate-x-1/2 pointer-events-none z-30 flex justify-center">
               <LyricsProviderIsland />
             </div>
           )}
@@ -491,25 +513,48 @@ export function FullscreenPlayer({
               </div>
             </div>
             <TimelineSlider positionMs={player.positionMs} durationMs={player.durationMs} onSeek={(pos) => playerEngine.seek(pos)} showTime size="sm" className="w-full" />
-            <div className="mt-2 flex items-center justify-center gap-10">
-              <button type="button" aria-label={t("player.previous")} className="border-0 bg-transparent text-white" onClick={() => void playerEngine.skipPrevious()}><SkipPrevious size={23} /></button>
-              <button type="button" aria-label={player.status === "playing" ? "Pause" : "Play"} className="flex h-12 w-12 items-center justify-center rounded-full border-0 bg-white text-black" onClick={() => void playerEngine.togglePlayPause()}>{player.status === "playing" ? <PauseFill size={24} /> : <PlayFill size={24} />}</button>
-              <button type="button" aria-label={t("player.next")} className="border-0 bg-transparent text-white" onClick={() => void playerEngine.skipNext()}><SkipNext size={23} /></button>
+            <div className="mt-2 flex items-center justify-between px-4">
+              <button
+                type="button"
+                aria-label={t("player.shuffle")}
+                className={`border-0 bg-transparent cursor-pointer transition-colors ${player.shuffle ? "text-accent-primary" : "text-white/70 hover:text-white"}`}
+                onClick={() => playerEngine.setShuffle(!player.shuffle)}
+              >
+                <Shuffle size={20} />
+              </button>
+              <div className="flex items-center gap-8">
+                <button type="button" aria-label={t("player.previous")} className="border-0 bg-transparent text-white cursor-pointer" onClick={() => void playerEngine.skipPrevious()}><SkipPrevious size={23} /></button>
+                <button type="button" aria-label={player.status === "playing" ? "Pause" : "Play"} className="flex h-12 w-12 items-center justify-center rounded-full border-0 bg-white text-black cursor-pointer shadow-lg" onClick={() => void playerEngine.togglePlayPause()}>{player.status === "playing" ? <PauseFill size={24} /> : <PlayFill size={24} />}</button>
+                <button type="button" aria-label={t("player.next")} className="border-0 bg-transparent text-white cursor-pointer" onClick={() => void playerEngine.skipNext()}><SkipNext size={23} /></button>
+              </div>
+              <button
+                type="button"
+                aria-label={t("player.repeat")}
+                className={`border-0 bg-transparent cursor-pointer transition-colors ${player.repeat !== "off" ? "text-accent-primary" : "text-white/70 hover:text-white"}`}
+                onClick={() => {
+                  const radio = isRadioContext(player.playbackContext);
+                  playerEngine.setRepeat(nextRepeatMode(player.repeat, radio));
+                }}
+              >
+                {player.repeat === "one" ? <RepeatOne size={20} /> : <Repeat size={20} />}
+              </button>
             </div>
           </div>
         )}
       </div>
 
-      <button
-        type="button"
-        aria-label={t("player.close_fullscreen")}
-        title={t("player.close_fullscreen") || "Close"}
-        onClick={onClose}
-        data-no-window-drag
-        className={`absolute ${isMobile ? "top-[calc(env(safe-area-inset-top)+8px)] left-4" : "top-[12px] left-[12px]"} z-30 inline-flex h-[32px] w-[32px] items-center justify-center rounded-lg border-none bg-black/50 backdrop-blur-xl text-white/80 hover:text-white hover:bg-white/10 active:scale-[0.94] transition-all cursor-pointer select-none pointer-events-auto`}
-      >
-        <DownLine size={18} />
-      </button>
+      {!isMobile && (
+        <button
+          type="button"
+          aria-label={t("player.close_fullscreen")}
+          title={t("player.close_fullscreen") || "Close"}
+          onClick={onClose}
+          data-no-window-drag
+          className="absolute top-[12px] left-[12px] z-30 inline-flex h-[32px] w-[32px] items-center justify-center rounded-lg border-none bg-black/50 backdrop-blur-xl text-white/80 hover:text-white hover:bg-white/10 active:scale-[0.94] transition-all cursor-pointer select-none pointer-events-auto"
+        >
+          <DownLine size={18} />
+        </button>
+      )}
     </div>
   );
 }

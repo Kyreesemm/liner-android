@@ -35,6 +35,16 @@ All notable changes to the Android version of Liner will be documented in this f
 ### Added
 - Initial background playback support via Android foreground service and `MediaSession` integration.
 - Swiped-away notification handling to keep notifications gone until playback resumes.
+- Stop media service and clear active notification when the app is swiped away from recent tasks.
+
+---
+
+## [1.0.3-patch] — 2026-10-20
+### Fixed
+- Handled YouTube playback directly without WebView CORS limitations on Android.
+
+### Added
+- Initial Capacitor Android application port, native Android build configuration, app icon assets, and foundational mobile UI adaptations.
 
 ---
 
@@ -47,6 +57,6 @@ All notable changes to the Android version of Liner will be documented in this f
 | `Liner-Android-debug-1.0.5-vc8.apk` | 1.0.5 | 8 | Full-screen edge-to-edge mode implementation. |
 | `Liner-Android-v1.0.5-debug-vc7.apk` | 1.0.5 | 7 | Minimized mini-player UI redesign with strict truncation and clean layout. |
 | `Liner-Android-v1.0.5-debug.apk` | 1.0.5 | 6 | Base 1.0.5 debug build. |
-| `Liner-Android-v1.0.4-debug.apk` | 1.0.4 | 5 | Background playback and media controls update. |
-| `Liner-Android-v1.0.3-patch-debug.apk` | 1.0.3 | 4 | Initial Android patches. |
+| `Liner-Android-v1.0.4-debug.apk` | 1.0.4 | 5 | Background playback, media controls update, and swipe-away cleanup. |
+| `Liner-Android-v1.0.3-patch-debug.apk` | 1.0.3 | 4 | YouTube CORS playback fixes for Android. |
 | `Liner-Android-v1.0.3-debug.apk` | 1.0.3 | 3 | Initial Capacitor port. |

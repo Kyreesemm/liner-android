@@ -361,7 +361,7 @@ export default function LibraryPage() {
       >
         <div className="sticky top-0 z-20 bg-transparent">
 
-          <div className="px-4 sm:px-8 pt-[16px] sm:pt-[20px] pb-[10px]">
+          <div className="px-4 sm:px-8 pt-[calc(env(safe-area-inset-top)+16px)] sm:pt-[20px] pb-[10px]">
             <h1
               className="text-[26px] font-bold text-text-primary tracking-tight m-0 leading-tight"
               style={{ fontFamily: "var(--font-inter), sans-serif" }}
@@ -370,21 +370,25 @@ export default function LibraryPage() {
             </h1>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-between gap-[10px] px-4 sm:px-8 pb-[10px]">
-            <LibraryTabs activeTab={activeTab} onChange={setActiveTab} />
-            <LibraryControls
-              activeTab={activeTab}
-              query={activeState.query}
-              onQueryChange={(query) =>
-                setActiveTabState({
-                  query,
-                  visibleCount: PAGE_SIZE,
-                  loadingMore: false,
-                })
-              }
-              viewMode={viewMode}
-              onViewModeChange={handleViewModeChange}
-            />
+          <div className="flex flex-col gap-[12px] px-4 sm:px-8 pb-[12px]">
+            <div className="flex justify-center sm:justify-start w-full">
+              <LibraryTabs activeTab={activeTab} onChange={setActiveTab} />
+            </div>
+            <div className="w-full">
+              <LibraryControls
+                activeTab={activeTab}
+                query={activeState.query}
+                onQueryChange={(query) =>
+                  setActiveTabState({
+                    query,
+                    visibleCount: PAGE_SIZE,
+                    loadingMore: false,
+                  })
+                }
+                viewMode={viewMode}
+                onViewModeChange={handleViewModeChange}
+              />
+            </div>
           </div>
         </div>
 

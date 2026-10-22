@@ -3,6 +3,9 @@ package fun.tryliner.music;
 import com.getcapacitor.BridgeActivity;
 import android.os.Bundle;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.os.Build;
+import androidx.core.view.WindowCompat;
 
 public class MainActivity extends BridgeActivity {
     static volatile MainActivity instance;
@@ -12,6 +15,13 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(LinerSignerPlugin.class);
         registerPlugin(LinerMediaSessionPlugin.class);
         super.onCreate(savedInstanceState);
+
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
+            getWindow().setNavigationBarColor(Color.TRANSPARENT);
+        }
+
         instance = this;
         if (android.os.Build.VERSION.SDK_INT >= 33 && checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[] { android.Manifest.permission.POST_NOTIFICATIONS }, 4182);

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { WindowState } from "../../../../electron/preload";
+import { Capacitor } from "@capacitor/core";
 
 export interface WindowStateHookResult {
   isMaximized: boolean;
@@ -41,7 +42,8 @@ export function useWindowState(): WindowStateHookResult {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
 
-  const isEdgeToEdge = isMaximized || isFullScreen;
+  const isMobile = typeof window !== "undefined" && Capacitor.isNativePlatform();
+  const isEdgeToEdge = isMaximized || isFullScreen || isMobile;
 
   useEffect(() => {
     activeWindowStateInstances++;

@@ -8,6 +8,8 @@ All notable changes to the Android version of Liner will be documented in this f
 
 ### Changed
 - Aligned the lyrics source selector pill horizontally and vertically with the top-left close/down arrow in `FullscreenPlayer.tsx`.
+- Removed the desktop window drag strip header on mobile.
+- Extended the background and main scroll container fully under the mobile status bar with top safe area padding while keeping the "Fast dial" content in place.
 
 ---
 
@@ -52,7 +54,7 @@ All notable changes to the Android version of Liner will be documented in this f
 
 | Filename | Version | VersionCode | Description |
 | :--- | :--- | :--- | :--- |
-| `Liner-Android-debug-1.0.5-vc10.apk` | 1.0.5 | 10 | Current build with aligned lyrics header and restored shuffle/repeat controls in fullscreen player. |
+| `Liner-Android-debug-1.0.5-vc10.apk` | 1.0.5 | 10 | Current build with mobile header cleanup, status bar background extension, and restored shuffle/repeat controls. |
 | `Liner-Android-debug-1.0.5-vc9.apk` | 1.0.5 | 9 | Status bar overlap fixes and mobile customization tab cleanup. |
 | `Liner-Android-debug-1.0.5-vc8.apk` | 1.0.5 | 8 | Full-screen edge-to-edge mode implementation. |
 | `Liner-Android-v1.0.5-debug-vc7.apk` | 1.0.5 | 7 | Minimized mini-player UI redesign with strict truncation and clean layout. |

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { WarningFill } from "@mingcute/react";
 import { useTranslation } from "@/languages";
+import { Capacitor } from "@capacitor/core";
 
 const SKIP_KEY = "liner:env-warning-skipped";
 
@@ -16,7 +17,7 @@ export default function EnvironmentWarning() {
     }
   });
 
-  if (typeof window !== "undefined" && window.linerElectron) return null;
+  if (typeof window !== "undefined" && (window.linerElectron || Capacitor.isNativePlatform())) return null;
   if (skipped) return null;
 
   const skip = () => {

@@ -1,10 +1,11 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import {
   Gallery,
   TrashBin2,
   Refresh,
 } from "@solar-icons/react";
 import { Upload2Line, CopyLine } from "@mingcute/react";
+import { Capacitor } from "@capacitor/core";
 
 import { useTranslation } from "@/languages";
 import { useTheme } from "next-themes";
@@ -33,8 +34,11 @@ export function CustomizationTab({ searchQuery }: { searchQuery?: string }) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isMobile = Capacitor.isNativePlatform();
   const [activeBlock, setActiveBlock] = useState<BlockTarget>("contentView");
   const [isDragOver, setIsDragOver] = useState(false);
+
+  const effectiveActiveBlock = isMobile && activeBlock === "miniplayer" ? "contentView" : activeBlock;
 
   const backgroundImage = useCustomizationStore((s) => s.backgroundImage);
   const backgroundBlur = useCustomizationStore((s) => s.backgroundBlur);
@@ -113,9 +117,9 @@ export function CustomizationTab({ searchQuery }: { searchQuery?: string }) {
   };
 
   const currentBlockConfig =
-    activeBlock === "sidebar"
+    effectiveActiveBlock === "sidebar"
       ? sidebar
-      : activeBlock === "contentView"
+      : effectiveActiveBlock === "contentView"
         ? contentView
         : miniplayer;
 
@@ -261,22 +265,35 @@ export function CustomizationTab({ searchQuery }: { searchQuery?: string }) {
             <div className="flex items-center justify-between">
               <SegmentedControl<BlockTarget>
                 ariaLabel={t("settings.customization.blocks_title") || "Blocks Glassmorphism"}
-                value={activeBlock}
+                value={effectiveActiveBlock}
                 onChange={setActiveBlock}
-                options={[
-                  {
-                    value: "sidebar",
-                    label: t("settings.customization.block_sidebar") || "Sidebar",
-                  },
-                  {
-                    value: "contentView",
-                    label: t("settings.customization.block_content") || "Content View",
-                  },
-                  {
-                    value: "miniplayer",
-                    label: t("settings.customization.block_miniplayer") || "Miniplayer",
-                  },
-                ]}
+                options={
+                  isMobile
+                    ? [
+                        {
+                          value: "sidebar",
+                          label: t("settings.customization.block_sidebar") || "Sidebar",
+                        },
+                        {
+                          value: "contentView",
+                          label: t("settings.customization.block_content") || "Content View",
+                        },
+                      ]
+                    : [
+                        {
+                          value: "sidebar",
+                          label: t("settings.customization.block_sidebar") || "Sidebar",
+                        },
+                        {
+                          value: "contentView",
+                          label: t("settings.customization.block_content") || "Content View",
+                        },
+                        {
+                          value: "miniplayer",
+                          label: t("settings.customization.block_miniplayer") || "Miniplayer",
+                        },
+                      ]
+                }
               />
 
               <div className="flex items-center gap-[6px] shrink-0">
